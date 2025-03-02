@@ -1,4 +1,4 @@
-Project Title: Algerian Products Detection
+Algerian Products Detection
 ============================================
 
 Description:
@@ -70,11 +70,5 @@ References:
 - Ultralytics YOLO GitHub: https://github.com/ultralytics/ultralytics :contentReference[oaicite:2]{index=2}
 - Bootstrap Documentation: https://getbootstrap.com/ :contentReference[oaicite:3]{index=3}
 
-License:
---------
-Specify your project's license here (e.g., MIT License) or add your own license terms.
 
-Contact:
---------
-Include contact information or instructions on how users can report issues or contribute to the project.
 
