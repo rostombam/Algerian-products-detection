@@ -1,1 +1,847 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Object Detection</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #3f37c9;
+      --accent-color: #4895ef;
+      --light-bg: #f8f9fa;
+      --dark-bg: #212529;
+      --text-color: #212529;
+      --card-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      --transition: all 0.3s ease;
+    }
+    
+    body {
+      background-color: var(--light-bg);
+      padding-bottom: 2rem;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-color);
+    }
+    
+    .app-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .brand-title {
+      font-weight: 700;
+      color: var(--primary-color);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      display: inline-block;
+    }
+    
+    .brand-title:after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 40px;
+      height: 3px;
+      background-color: var(--accent-color);
+      border-radius: 5px;
+    }
+    
+    .detection-panel {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: var(--card-shadow);
+      padding: 30px;
+      margin-bottom: 30px;
+      transition: var(--transition);
+      border: none;
+    }
+    
+    .detection-panel:hover {
+      box-shadow: 0 12px 20px rgba(0,0,0,0.15);
+    }
+    
+    #cameraFeed {
+      width: 100%;
+      height: auto;
+      display: none;
+    }
+    
+    .result-image {
+      width: 100%;
+      border-radius: 8px;
+      background-color: #f0f2f5;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      transition: var(--transition);
+    }
+    
+    .result-container {
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .camera-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f0f2f5 0%, #e5e7eb 100%);
+      border-radius: 12px;
+      transition: var(--transition);
+    }
+    
+    .camera-icon {
+      font-size: 3rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+      opacity: 0.7;
+    }
+    
+    .detection-controls {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      height: 100%;
+      box-shadow: var(--card-shadow);
+    }
+    
+    .section-title {
+      font-weight: 600;
+      font-size: 1.25rem;
+      margin-bottom: 1.25rem;
+      color: var(--text-color);
+      position: relative;
+      padding-bottom: 0.5rem;
+    }
+    
+    .section-title:after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 40px;
+      height: 3px;
+      background-color: var(--accent-color);
+      border-radius: 5px;
+    }
+    
+    .btn-detection {
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-radius: 8px;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .btn-start {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+    
+    .btn-start:hover, .btn-start:focus {
+      background-color: var(--secondary-color);
+      border-color: var(--secondary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+    }
+    
+    .btn-stop {
+      background-color: #dc3545;
+      border-color: #dc3545;
+    }
+    
+    .btn-stop:hover, .btn-stop:focus {
+      background-color: #bb2d3b;
+      border-color: #bb2d3b;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    }
+    
+    .confidence-slider {
+      padding: 20px 0;
+    }
+    
+    .confidence-value {
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--primary-color);
+      padding-left: 10px;
+    }
+    
+    .form-range::-webkit-slider-thumb {
+      background: var(--primary-color);
+    }
+    
+    .form-range::-moz-range-thumb {
+      background: var(--primary-color);
+    }
+    
+    .form-range::-ms-thumb {
+      background: var(--primary-color);
+    }
+    
+    .stats-card {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.04);
+      transition: var(--transition);
+    }
+    
+    .stats-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stat-item {
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .stat-label {
+      font-weight: 500;
+      color: #6c757d;
+    }
+    
+    .stat-value {
+      font-weight: 600;
+      color: var(--text-color);
+    }
+    
+    .badge-primary {
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: 600;
+      padding: 0.4em 0.65em;
+      border-radius: 6px;
+    }
+    
+    .detected-list {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 1rem;
+      padding-right: 5px;
+    }
+    
+    .detected-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .detected-list::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    .detected-list::-webkit-scrollbar-thumb {
+      background: #c5c9d4;
+      border-radius: 10px;
+    }
+    
+    .detected-list::-webkit-scrollbar-thumb:hover {
+      background: #a3a8b5;
+    }
+    
+    .list-group-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1.25rem;
+      background-color: white;
+      border-left: 4px solid var(--primary-color);
+      margin-bottom: 8px;
+      border-radius: 6px;
+      transition: var(--transition);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    
+    .list-group-item:hover {
+      transform: translateX(5px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+    
+    .tabs {
+      display: flex;
+      margin-bottom: 25px;
+      background-color: white;
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    
+    .btn-tab {
+      flex-grow: 1;
+      text-align: center;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      color: #495057;
+      transition: var(--transition);
+      border: none;
+      background: transparent;
+    }
+    
+    .btn-tab:hover {
+      color: var(--primary-color);
+    }
+    
+    .btn-tab.active {
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: 600;
+      box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+    }
+    
+    .btn-tab i {
+      margin-right: 8px;
+    }
+    
+    .drop-zone {
+      border: 2px dashed #4361ee;
+      background-color: rgba(67, 97, 238, 0.03);
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    
+    .drop-zone:hover {
+      background-color: rgba(67, 97, 238, 0.08);
+    }
+    
+    .drop-zone.active {
+      background-color: rgba(67, 97, 238, 0.12);
+      border-color: var(--accent-color);
+    }
+    
+    .drop-zone i {
+      font-size: 3rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+    
+    .upload-message {
+      color: #6c757d;
+      font-weight: 500;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 0.7; }
+      50% { opacity: 1; }
+      100% { opacity: 0.7; }
+    }
+    
+    .status-processing {
+      color: #fd7e14;
+      animation: pulse 1.5s infinite;
+    }
+    
+    .status-running {
+      color: #20c997;
+    }
+    
+    .status-error {
+      color: #dc3545;
+    }
+    
+    @media (max-width: 768px) {
+      .detection-panel {
+        padding: 20px;
+      }
+      
+      .camera-icon {
+        font-size: 2rem;
+      }
+      
+      .btn-detection {
+        padding: 0.6rem 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container app-container my-4">
+    <h1 class="brand-title text-center mb-4">Algerian Products Detection</h1>
+    
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+      <button id="realtimeTab" class="btn-tab active">
+        <i class="bi bi-camera-video"></i> Real-time Detection
+      </button>
+      <button id="uploadTab" class="btn-tab">
+        <i class="bi bi-cloud-upload"></i> Image Upload
+      </button>
+    </div>
+
+    <!-- Real-Time Detection Section -->
+    <div id="realtimeSection" class="detection-panel">
+      <div class="row g-4">
+        <!-- Real-time Detection Controls -->
+        <div class="col-md-4">
+          <div class="detection-controls">
+            <h4 class="section-title">Detection Controls</h4>
+            
+            <!-- Confidence Threshold Slider -->
+            <div class="confidence-slider">
+              <label for="confidenceSlider" class="form-label d-flex align-items-center">
+                Confidence Threshold 
+                <span id="confidenceValue" class="confidence-value">80%</span>
+              </label>
+              <input type="range" class="form-range" id="confidenceSlider" min="10" max="100" value="80">
+              <p class="text-muted small mt-1">Adjust to filter objects by confidence level</p>
+            </div>
+            
+            <!-- Control Buttons -->
+            <div class="d-grid gap-3 mt-4">
+              <button id="startDetection" class="btn btn-primary btn-detection btn-start">
+                <i class="bi bi-play-fill"></i> Start Detection
+              </button>
+              <button id="stopDetection" class="btn btn-danger btn-detection btn-stop" disabled>
+                <i class="bi bi-stop-fill"></i> Stop Detection
+              </button>
+            </div>
+            
+            <div id="cameraError" class="alert alert-danger mt-3" style="display: none;"></div>
+            
+            <!-- Detection Stats -->
+            <div class="stats-card">
+              <h5 class="section-title">Detection Stats</h5>
+              <div class="stat-item">
+                <div class="stat-label">Objects Detected:</div>
+                <div class="stat-value">
+                  <span id="realtimeObjectCount" class="badge badge-primary">0</span>
+                </div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">Processing Time:</div>
+                <div class="stat-value"><span id="processingTime">0</span> ms</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">Status:</div>
+                <div class="stat-value">
+                  <span id="detectionStatus" class="status-running">Ready</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-time Detection Results -->
+        <div class="col-md-8">
+          <h4 class="section-title">Real-time Detection Results</h4>
+          
+          <div class="result-container">
+            <img id="realtimeResultImage" class="result-image" alt="Detection Result">
+            <div id="cameraPlaceholder" class="camera-placeholder">
+              <i class="bi bi-camera camera-icon"></i>
+              <h5>Detection Feed</h5>
+              <p class="text-muted">Press "Start Detection" to begin</p>
+            </div>
+            <video id="cameraFeed" autoplay muted playsinline></video>
+          </div>
+          
+          <div class="mt-4">
+            <h5 class="section-title">Detected Objects</h5>
+            <ul id="realtimeDetectedList" class="list-group detected-list"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Upload Section -->
+    <div id="uploadSection" class="detection-panel" style="display: none;">
+      <div class="row g-4">
+        <div class="col-md-5">
+          <h4 class="section-title">Upload Image</h4>
+          <form id="uploadForm" enctype="multipart/form-data">
+            <div id="dropZone" class="drop-zone mb-4">
+              <i class="bi bi-cloud-upload"></i>
+              <p class="upload-message">Drag & drop an image here or click to browse</p>
+              <input type="file" id="imageInput" name="image" accept="image/*" style="display: none;">
+            </div>
+            
+            <div id="previewContainer" style="display: none;" class="mb-4">
+              <h5 class="section-title">Preview</h5>
+              <img id="imagePreview" class="img-fluid rounded" alt="Preview">
+            </div>
+            
+            <!-- Confidence Threshold Slider for Upload -->
+            <div class="confidence-slider">
+              <label for="uploadConfidenceSlider" class="form-label d-flex align-items-center">
+                Confidence Threshold
+                <span id="uploadConfidenceValue" class="confidence-value">80%</span>
+              </label>
+              <input type="range" class="form-range" id="uploadConfidenceSlider" min="10" max="100" value="80">
+            </div>
+            
+            <div class="d-grid mt-4">
+              <button id="uploadButton" type="submit" class="btn btn-primary btn-detection btn-start" disabled>
+                <i class="bi bi-search"></i> Detect Objects
+              </button>
+            </div>
+          </form>
+          <div id="uploadError" class="alert alert-danger mt-3" style="display: none;"></div>
+        </div>
+
+        <!-- Image Upload Detection Results -->
+        <div class="col-md-7">
+          <h4 class="section-title">Image Upload Results</h4>
+          <div class="result-container mb-4">
+            <img id="uploadResultImage" class="result-image" alt="Upload Detection Result">
+          </div>
+          <div>
+            <h5 class="section-title">Detected Objects <span id="uploadObjectCount" class="badge badge-primary">0</span></h5>
+            <ul id="uploadDetectedList" class="list-group detected-list"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // DOM Elements
+    const video = document.getElementById('cameraFeed');
+    const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+    const startBtn = document.getElementById('startDetection');
+    const stopBtn = document.getElementById('stopDetection');
+    
+    // Confidence sliders
+    const confidenceSlider = document.getElementById('confidenceSlider');
+    const confidenceValue = document.getElementById('confidenceValue');
+    const uploadConfidenceSlider = document.getElementById('uploadConfidenceSlider');
+    const uploadConfidenceValue = document.getElementById('uploadConfidenceValue');
+    const processingTime = document.getElementById('processingTime');
+    const detectionStatus = document.getElementById('detectionStatus');
+    
+    // Real-time detection elements
+    const realtimeResultImage = document.getElementById('realtimeResultImage');
+    const realtimeDetectedList = document.getElementById('realtimeDetectedList');
+    const realtimeObjectCount = document.getElementById('realtimeObjectCount');
+    
+    // Image upload detection elements
+    const uploadResultImage = document.getElementById('uploadResultImage');
+    const uploadDetectedList = document.getElementById('uploadDetectedList');
+    const uploadObjectCount = document.getElementById('uploadObjectCount');
+    
+    const cameraError = document.getElementById('cameraError');
+    const uploadError = document.getElementById('uploadError');
+    
+    const realtimeTab = document.getElementById('realtimeTab');
+    const uploadTab = document.getElementById('uploadTab');
+    const realtimeSection = document.getElementById('realtimeSection');
+    const uploadSection = document.getElementById('uploadSection');
+    
+    const imageInput = document.getElementById('imageInput');
+    const dropZone = document.getElementById('dropZone');
+    const uploadForm = document.getElementById('uploadForm');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewContainer = document.getElementById('previewContainer');
+    const uploadButton = document.getElementById('uploadButton');
+
+    let streamInterval;
+    let processingFrame = false;
+    let controller = null; // For aborting fetch requests
+    
+    // Update confidence values on slider change
+    confidenceSlider.addEventListener('input', () => {
+      const value = confidenceSlider.value;
+      confidenceValue.textContent = `${value}%`;
+    });
+    
+    uploadConfidenceSlider.addEventListener('input', () => {
+      const value = uploadConfidenceSlider.value;
+      uploadConfidenceValue.textContent = `${value}%`;
+    });
+
+    // Tab Navigation
+    realtimeTab.addEventListener('click', () => {
+      realtimeTab.classList.add('active');
+      uploadTab.classList.remove('active');
+      realtimeSection.style.display = 'block';
+      uploadSection.style.display = 'none';
+    });
+
+    uploadTab.addEventListener('click', () => {
+      uploadTab.classList.add('active');
+      realtimeTab.classList.remove('active');
+      uploadSection.style.display = 'block';
+      realtimeSection.style.display = 'none';
+    });
+
+    // Start Real-Time Detection
+    startBtn.addEventListener('click', () => {
+      cameraError.style.display = 'none';
+      detectionStatus.textContent = 'Starting...';
+      detectionStatus.className = 'status-processing';
+      
+      // Be explicit about camera constraints
+      const constraints = {
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: 'environment' // Use back camera if available
+        }
+      };
+      
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => {
+          // Show a brief preview of the camera to ensure it's working
+          video.style.display = 'block'; 
+          video.srcObject = stream;
+          
+          // Wait for video to be ready before capturing frames
+          video.onloadedmetadata = function() {
+            console.log("Video dimensions:", video.videoWidth, "x", video.videoHeight);
+            
+            // Hide the placeholder and make sure video is ready
+            cameraPlaceholder.style.display = 'none';
+            video.play();
+            
+            // After confirming video works, you can hide it and just show results
+            // But don't hide it immediately - wait for first frame to process
+            
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            
+            detectionStatus.textContent = 'Running';
+            detectionStatus.className = 'status-running';
+
+            // Send frames to the server after ensuring video is playing
+            streamInterval = setInterval(() => {
+              if (processingFrame) return; // Skip if still processing previous frame
+              
+              // Only start processing once video is actually playing
+              if (video.readyState !== 4) {
+                console.log("Video not ready yet, state:", video.readyState);
+                return;
+              }
+              
+              processingFrame = true;
+              const startTime = performance.now();
+              detectionStatus.textContent = 'Processing...';
+              detectionStatus.className = 'status-processing';
+              
+              // Show the first processed frame before hiding the camera
+              if (video.style.display === 'block') {
+                // Only hide after first successful frame processed
+                setTimeout(() => {
+                  video.style.display = 'none';
+                }, 500);
+              }
+              
+              // Create canvas and draw video frame
+              const canvas = document.createElement('canvas');
+              canvas.width = video.videoWidth || 640;
+              canvas.height = video.videoHeight || 480;
+              const ctx = canvas.getContext('2d');
+              
+              // Check if dimensions are valid
+              if (canvas.width > 0 && canvas.height > 0 && video.videoWidth > 0 && video.videoHeight > 0) {
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Abort any existing fetch request
+                if (controller) {
+                  controller.abort();
+                }
+                
+                // Create new AbortController for this request
+                controller = new AbortController();
+                
+                canvas.toBlob(blob => {
+                  // Show the canvas content as a fallback if detection is slow
+                  try {
+                    const tempUrl = URL.createObjectURL(blob);
+                    realtimeResultImage.src = tempUrl;
+                    
+                    // Clean up the URL object after image loads
+                    realtimeResultImage.onload = () => URL.revokeObjectURL(tempUrl);
+                  } catch (e) {
+                    console.error("Error creating preview:", e);
+                  }
+                  
+                  const formData = new FormData();
+                  formData.append('frame', blob);
+                  // Add confidence threshold from slider (convert to decimal)
+                  const confidenceThreshold = confidenceSlider.value / 100;
+                  formData.append('confidence', confidenceThreshold);
+                  
+                  fetch('/detect_video', { 
+                    method: 'POST', 
+                    body: formData,
+                    signal: controller.signal
+                  })
+                    .then(response => {
+                      if (!response.ok) {
+                        throw new Error('Server error: ' + response.status);
+                      }
+                      return response.json();
+                    })
+                    .then(data => {
+                      const endTime = performance.now();
+                      processingTime.textContent = Math.round(endTime - startTime);
+                      
+                      // Only update if we have valid image data
+                      if (data.image) {
+                        realtimeResultImage.src = 'data:image/jpeg;base64,' + data.image;
+                        realtimeDetectedList.innerHTML = '';
+                        data.classes.forEach(item => {
+                          const li = document.createElement('li');
+                          li.className = 'list-group-item';
+                          li.innerHTML = `${item.label} <span class="badge bg-secondary">${Math.round(item.confidence * 100)}%</span>`;
+                          realtimeDetectedList.appendChild(li);
+                        });
+                        realtimeObjectCount.textContent = data.classes.length;
+                      }
+                      
+                      processingFrame = false;
+                      detectionStatus.textContent = 'Running';
+                      detectionStatus.className = 'status-running';
+                    })
+                    .catch(error => {
+                      if (error.name === 'AbortError') {
+                        console.log('Request aborted for new frame');
+                      } else {
+                        console.error('Detection error:', error);
+                        detectionStatus.textContent = 'Error';
+                        detectionStatus.className = 'status-error';
+                      }
+                      processingFrame = false;
+                    });
+                }, 'image/jpeg', 0.8); // Lower quality for faster transmission
+              } else {
+                console.error("Invalid video dimensions:", video.videoWidth, video.videoHeight);
+                processingFrame = false;
+              }
+            }, 150); // Reduced interval for more responsive detection
+          };
+        })
+        .catch(error => {
+          console.error('Camera access error:', error);
+          cameraError.textContent = 'Camera access error: ' + error.message;
+          cameraError.style.display = 'block';
+          detectionStatus.textContent = 'Error';
+          detectionStatus.className = 'status-error';
+          startBtn.disabled = false;
+        });
+    });
+
+    // Stop Real-Time Detection
+    stopBtn.addEventListener('click', () => {
+      clearInterval(streamInterval);
+      if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+      }
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      cameraPlaceholder.style.display = 'flex';
+      detectionStatus.textContent = 'Stopped';
+      detectionStatus.className = 'text-secondary';
+    });
+
+    // Drag and drop functionality
+    dropZone.addEventListener('click', () => {
+      imageInput.click();
+    });
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, () => {
+        dropZone.classList.add('active');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, () => {
+        dropZone.classList.remove('active');
+      });
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        handleFile(file);
+      }
+    });
+
+    imageInput.addEventListener('change', () => {
+      if (imageInput.files.length > 0) {
+        handleFile(imageInput.files[0]);
+      }
+    });
+
+    function handleFile(file) {
+      previewContainer.style.display = 'block';
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        imagePreview.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      uploadButton.disabled = false;
+    }
+
+    // Image Upload for Detection
+    uploadForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      uploadError.style.display = 'none';
+      
+      const formData = new FormData(uploadForm);
+      // Add confidence threshold from slider
+      const confidenceThreshold = uploadConfidenceSlider.value / 100;
+      formData.append('confidence', confidenceThreshold);
+
+      fetch('/detect_image', { method: 'POST', body: formData })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Server error: ' + response.status);
+          }
+          return response.json();
+        })
+        .then(data => {
+          uploadResultImage.src = 'data:image/jpeg;base64,' + data.image;
+          uploadDetectedList.innerHTML = '';
+          data.classes.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.innerHTML = `${item.label} <span class="badge bg-secondary">${Math.round(item.confidence * 100)}%</span>`;
+            uploadDetectedList.appendChild(li);
+          });
+          uploadObjectCount.textContent = data.classes.length;
+        })
+        .catch(error => {
+          console.error('Error during detection:', error);
+          uploadError.textContent = 'Error during detection: ' + error.message;
+          uploadError.style.display = 'block';
+        });
+    });
+  </script>
+</body>
+</html>
