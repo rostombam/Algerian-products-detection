@@ -70,15 +70,7 @@ Troubleshooting:
 
 References:
 -----------
-- Flask Documentation: https://flask.palletsprojects.com/ :contentReference[oaicite:2]{index=2}
-- OpenCV Official Site: https://opencv.org/ :contentReference[oaicite:3]{index=3}
-- Ultralytics YOLO GitHub: https://github.com/ultralytics/ultralytics :contentReference[oaicite:4]{index=4}
-- Bootstrap Documentation: https://getbootstrap.com/ :contentReference[oaicite:5]{index=5}
-
-License:
---------
-Specify your project's license here (e.g., MIT License) or add your own license terms.
-
-Contact:
---------
-Include contact information or instructions on how users can report issues or contribute to the project.
+- Flask Documentation: https://flask.palletsprojects.com/ 
+- OpenCV Official Site: https://opencv.org/ 
+- Ultralytics YOLO GitHub: https://github.com/ultralytics/ultralytics 
+- Bootstrap Documentation: https://getbootstrap.com/ 
